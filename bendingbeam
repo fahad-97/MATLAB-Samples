@@ -1,0 +1,38 @@
+%During my Mechanical Engineering course at University, first-year coursework involved the creation of a script which took inputs of point forces applied along a beam's length, outputting the shear force and bending moment distribution. This piece of coursework obtained full marks, and the m-file (script) is presented below:
+
+disp('consider all forces to be positive in the downwards direction')
+L=input('insert here the length of the beam (distance A to B) in m: ');
+disp('now, insert all following values in vector form [a b c ... z]')
+disp('and in order of distance from point A on the beam')
+wvector=input('insert forces (in N): ');
+pvector=input('insert distances (in m): ');
+N=length(wvector);
+x=linspace(0,L,1001);
+y1=linspace(0,L,1001);
+y2=linspace(0,L,1001);
+yQ=zeros(1,1001);
+yM=zeros(1,1001);
+for n=1:N
+    W=wvector(n);
+    P=pvector(n);
+    
+    y1(1:1001)=0;
+    diff=abs(x-P);
+    lim=find(diff==min(diff));
+    y1(1:lim)=W;
+    yQ=yQ+y1;
+    
+    y2(1:1001)=0;
+    y2(1:lim)=-W*(P-x(1:lim));
+    yM=yM+y2;
+end
+figure(1)
+plot(x,yQ,'r')
+title('Shear force at a point on beam AB')
+xlabel('Distance from point A (x) /m')
+ylabel('Shear force /N')
+figure(2)
+plot(x,yM,'g')
+title('Bending moment at a point on beam AB')
+xlabel('Distance from point A (x) /m')
+ylabel('Bending moment /Nm')
