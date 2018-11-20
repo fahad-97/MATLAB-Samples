@@ -1,4 +1,4 @@
-%During my Mechanical Engineering course at University, first-year coursework involved the creation of a script which took inputs of point forces applied along a beam's length, outputting the shear force and bending moment distribution. This piece of coursework obtained full marks, and the m-file (script) is presented below:
+%During my Mechanical Engineering course at University, first-year coursework involved the creation of a script which took inputs of point forces applied along a beam's length, outputting the shear force and bending moment distribution. This piece of coursework was creared from scratch and obtained full marks, and the m-file (script) is presented below:
 
 disp('consider all forces to be positive in the downwards direction')
 L=input('insert here the length of the beam (distance A to B) in m: ');
