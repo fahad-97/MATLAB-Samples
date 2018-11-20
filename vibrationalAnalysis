@@ -1,0 +1,395 @@
+%The below code is an example of practical MATLAB applications during my university course. For third-year coursework, it was required to produce multiple plots comparing the theoretical and experimental vibrational behaviour of a sample beam simulating aircraft wing behaviour, under 6-degrees-of-freedom vibrational analysis. Whilst complex coding principles aren't really demonstrated, this is an example of how repetitive and complicated mathematical operations, and normalized stacked graph comparisons, were performed using the software. This code was created from scratch by myself and obtained full marks for the coursework.
+
+E=200e09; G=75e09; rho=7850;
+
+L1=0.537; L2=0.5625; L3=0.588; l1=0.178; l2=0.201; %lengths are presented here as arranged in Table 1
+la=L3; lb=2*l1; %arranged this way so that the variable can easily be changed to use any of the other lengths above
+
+wa=0.0518; wb=0.0498; ta=0.00657; tb=0.00633;
+ma=wa*ta*la*rho;
+mb=wb*tb*lb*rho;
+
+%mass matrix terms:
+
+m1=ma/4; m2=ma/4; m3=ma/4; m4=(ma/8)+(mb/2); m5=mb/4; m6=mb/4;
+
+%%% mass matrix %%%
+M=[m1 0 0 0 0 0
+   0 m2 0 0 0 0
+   0 0 m3 0 0 0
+   0 0 0 m4 0 0
+   0 0 0 0 m5 0
+   0 0 0 0 0 m6];
+
+Ia=wa*ta^3/12; Ca=wa*ta^3/3; Ib=wb*tb^3/12;
+
+%flexibility matrix terms:
+
+a11=la^3/(192*E*Ia);
+a12=5*la^3/(384*E*Ia);
+a13=la^3/(48*E*Ia); 
+a14=11*la^3/(384*E*Ia); 
+a15=11*la^3/(384*E*Ia); 
+a16=11*la^3/(384*E*Ia);
+
+a21=a12; 
+a22=la^3/(24*E*Ia); 
+a23=7*la^3/(96*E*Ia);
+a24=5*la^3/(48*E*Ia); 
+a25=5*la^3/(48*E*Ia); 
+a26=5*la^3/(48*E*Ia);
+
+a31=a13; 
+a32=a23; 
+a33=9*la^3/(64*E*Ia); 
+a34=27*la^3/(128*E*Ia); 
+a35=27*la^3/(128*E*Ia); 
+a36=27*la^3/(128*E*Ia);
+
+a41=a14; 
+a42=a24; 
+a43=a34; 
+a44=la^3/(3*E*Ia); 
+a45=la^3/(3*E*Ia); 
+a46=la^3/(3*E*Ia);
+
+a51=a15; 
+a52=a25; 
+a53=a35; 
+a54=a45; 
+a55=la^3/(3*E*Ia)+(la*lb^2)/(4*G*Ca)+lb^3/(24*E*Ib); 
+a56=la^3/(3*E*Ia)-(la*lb^2)/(4*G*Ca);
+
+a61=a16; 
+a62=a26; 
+a63=a36; 
+a64=a46; 
+a65=a56; 
+a66=la^3/(3*E*Ia)+(la*lb^2)/(4*G*Ca)+lb^3/(24*E*Ib);
+
+%%% flexibility matrix %%%
+a=[a11 a12 a13 a14 a15 a16
+   a21 a22 a23 a24 a25 a26
+   a31 a32 a33 a34 a35 a36
+   a41 a42 a43 a44 a45 a46
+   a51 a52 a53 a54 a55 a56
+   a61 a62 a63 a64 a65 a66];
+
+[D]=[a]*[M];
+[R,L]=eig(D); %this splits amplitude data into R and frequency data into L
+[LS,n]=sort(diag(L), 'descend'); %when LS is sorted to be in descending
+%order, frequency is consequently sorted into ascending order below
+R=R(:,n); %this sorts the columns of R to align with the sorted frequencies
+
+%For example, if the third diagonal in L is the lowest value, the last
+%term in vector LS is the third diagonal of L. Therefore the last term in
+%the n vector is 3, and therefore the third column in R is moved to become
+%the last column. Row order in R is unchanged.
+
+wn=sqrt(1./LS)
+fn=wn/(2*pi) %frequencies come out in ascending order, verifying the sort
+%mode used above
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 1
+
+%theoretical
+figure(1)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,1) R(2,1) R(3,1) R(4,1)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,1) R(4,1) R(6,1)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 1')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 1.203	2.003	1.573	1.205	1.01	2.644	5.577	-2.576	-4.188	12.3	2.763	2.152	4.546	1.87	7.295	13.42	10.07	7.94];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[10.26	8.65	8.65	5.46	8.59	11.09	9.48	7.94    6.76	5.064	4.044	10.7	7.006	3.207	6.411];
+%it was found this data's amplitude direction is opposite to the theory,
+%therefore a (-1) multiplication is applied to compare them more accurately
+z3=z3*-1; z4=z4*-1;
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 2
+
+%theoretical
+figure(2)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,2) R(2,2) R(3,2) R(4,2)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,2) R(4,2) R(6,2)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 2')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 0.3254	0.4791	0.5445	0.8537	0.8251	0.9948	0.9962	1.004	0.9923	0.916	0.6644	0.6099	0.4402	0.5159	0.1843	0.2145	0.4184	0.7612];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[25.3	17.96	17.96	9.24	6.87	9.87	2.349   0.7612	-2.72	-13.07	-14.3	-9.283	-17.92	-18.37	-53.68];
+%it was found this data's amplitude direction is opposite to the theory,
+%therefore a (-1) multiplication is applied to compare them more accurately
+z3=z3*-1; z4=z4*-1;
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 3
+
+%theoretical
+figure(3)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,3) R(2,3) R(3,3) R(4,3)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,3) R(4,3) R(6,3)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 3')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 4.45	21.35	34.6	47.72	67.32	78.59	82.26	108.9	119.1	113	83.24	62.22	52.49	62.44	28.23	4.574	2.517	-40.39];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[-37.4	-38.86	-38.86	-29.36	-29.1	-27.12	-24.15	-40.39  -25.06	-27.06	-29.07	-26.77	-32.37	-32.33	-34.77];
+%it was found this data's amplitude direction is opposite to the theory,
+%therefore a (-1) multiplication is applied to compare them more accurately
+z3=z3*-1; z4=z4*-1;
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 4
+
+%theoretical
+figure(4)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,4) R(2,4) R(3,4) R(4,4)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,4) R(4,4) R(6,4)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 4')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 14.86	43.5	66.38	96.28	113.9	122.5	119.2	105.2	72.86	31.06	-18.94	-60.12	-97.32	-128	-138.4	-142.5	-146.8	-138.8];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[272.5	185.8	185.8	28.91	-45.95	-99.25	-136.2	-138.8  -119.3	-94.47	-36.75	41.78	134.9	224.1	298.8];
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 5
+
+%theoretical
+figure(5)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,5) R(2,5) R(3,5) R(4,5)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,5) R(4,5) R(6,5)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 5')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 115.9	279	417.6	564.7	687.8	658.7	529.8	358.5	160.9	-98.04	-424.9	-614.1	-676.9	-587.2	-403.3	-211.4	51.45	697.5];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[-517.4	-266	-266	100.6	276.4	381.5	431   697.5 	-266	327.9	228.5	39.06	-152.2	-346.2	-544.3];
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
+
+%------------------------------------------------------------------------------------------------------------------------------------------------%
+
+%deformed shape plot for mode 6
+
+%theoretical
+figure(6)
+x1=[0 0 0 0 0];
+y1=[0 (5/18)*la (10/18)*la (14/18)*la la];
+z1=[0 R(1,6) R(2,6) R(3,6) R(4,6)];
+x2=[-lb/2 0 lb/2];
+y2=[la la la];
+z2=[R(5,6) R(4,6) R(6,6)];
+%to normalize amplitudes
+maxzt=max(max(abs(z1)),max(abs(z2)));
+z1=z1/maxzt; z2=z2/maxzt;
+%plot
+plot3(x1,y1,z1,'c',x2,y2,z2,'c')
+grid on
+title ('Mode Shape for Mode 6')
+xlabel ('x (m)')
+ylabel ('y (m)')
+zlabel ('Relative Displacement (m)')
+
+hold on
+
+%experimental
+x3=zeros(1,19);
+y3=[0 (1/18)*la (2/18)*la (3/18)*la (4/18)*la (5/18)*la (6/18)*la (7/18)*la (8/18)*la (9/18)*la (10/18)*la (11/18)*la (12/18)*la (13/18)*la (14/18)*la (15/18)*la (16/18)*la (17/18)*la la];
+z3=[0 430.7	1110	1423	1609	1488	859.7	-165.6	-987.3	-1512	-1650	-1207	-531.3	309.4	969.2	1518	1173	772.3	-631.6];
+x4=[(-7/14)*lb (-6/14)*lb (-5/14)*lb (-4/14)*lb (-3/14)*lb (-2/14)*lb (-1/14)*lb 0 (1/14)*lb (2/14)*lb (3/14)*lb (4/14)*lb (5/14)*lb (6/14)*lb (7/14)*lb];
+y4=la*ones(1,15);
+z4=[214.7	3.4	-3.4	-118.4	-141.2	-176	-164.4  -631.6	-204.9	-238.1	-139.6	-52.38	-9.506	148.6	189];
+%to normalize amplitudes
+maxze=max(max(abs(z3)),max(abs(z4)));
+z3=z3/maxze; z4=z4/maxze;
+%plot
+plot3(x3,y3,z3,'r',x4,y4,z4,'r')
+
+hold on
+
+%undeformed shape
+z5=zeros(1,19);
+z6=zeros(1,15);
+plot=plot3(x3,y3,z5,'k',x4,y4,z6,'k');
+legend('Theoretical Displacement','','Measured Displacement','','Undeformed Shape','','Location','best')
+
+uistack(plot, 'bottom') %this is to ensure undeformed shape does not block 
+%the theoretical and experimental plots in the figure
